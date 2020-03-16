@@ -24,9 +24,10 @@ struct Task {
     constexpr static size_t STACKSIZE = 4096;
 
     Task(void (*entry_point)(void))
-        : pid { max_pid }
-        , entry_point { entry_point }
+        : entry_point { entry_point }
     {
+        this->pid = max_pid++;
+        printf("Created task %d\n", pid);
         void* stack = new char[STACKSIZE];
         getcontext(&context);
 
@@ -39,14 +40,9 @@ struct Task {
         }
 
         makecontext(&context, entry_point, 1);
-        pid++;
     }
 
-    Task(Task&& o)
-        : priority { o.priority }
-        , context { std::move(o.context) }
-    {
-    }
+    Task(Task&& o) = default;
 
     /*
      * Start or resume a task.

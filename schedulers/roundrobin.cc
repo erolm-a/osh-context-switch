@@ -42,10 +42,10 @@ namespace roundrobin
     static void timer_interrupt(int j, siginfo_t* si, void* oldcontext);
     static void setup_signals();
 
-    void add_task(void (*task)(void))
+    void add_task(Task&& task)
     {
         std::unique_lock<std::mutex> lock(mutex);
-        tasks.emplace_back(task);
+        tasks.push_back(std::move(task));
     }
 
     void setup(int milliseconds)
@@ -97,9 +97,13 @@ namespace roundrobin
      */
     [[noreturn]] static void next_process()
     {
+#if VERBOSE
         printf("scheduling out process %d\n", tasks[current_process].pid);
+#endif
         current_process = (current_process + 1) % tasks.size();
+#if VERBOSE
         printf("scheduling in process %d\n", tasks[current_process].pid);
+#endif
         cur_context = &tasks[current_process].context;
         tasks[current_process].run();
     }

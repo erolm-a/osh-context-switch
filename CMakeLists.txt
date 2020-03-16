@@ -11,3 +11,5 @@ target_include_directories(Jit PRIVATE schedulers/)
 
 find_package(Threads REQUIRED)
 target_link_libraries(Jit Threads::Threads)
+
+# target_compile_definitions(Jit PRIVATE -DVERBOSE)
