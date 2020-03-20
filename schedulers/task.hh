@@ -21,6 +21,17 @@ struct Task {
     // The context of the process.
     ucontext_t context;
 
+    enum class State
+    {
+        READY,          // ready to run
+        RUNNING,        // currently being run by the CPU
+        WAITING,        // waiting for IO to conclude
+        DONE            // This thread is done
+    } state;
+
+    int io_wait {0};    // how many milliseconds to wait
+    
+
     constexpr static size_t STACKSIZE = 4096;
 
     Task(void (*entry_point)(void))
@@ -39,6 +50,8 @@ struct Task {
             exit(EXIT_FAILURE);
         }
 
+        state = State::READY;
+
         makecontext(&context, entry_point, 1);
     }
 
@@ -49,14 +62,14 @@ struct Task {
      */
     [[noreturn]] void run()
     {
-        while (true) {
+        while (state != State::DONE) {
+            state = State::RUNNING;
             setcontext(&context);
         }
     }
 
-    Task(const Task&) = default;
     // Avoid dangerous context sharing.
-    // Task(const Task&) = delete;
-    // Task& operator=(const Task&) = delete;
+    Task(const Task&) = delete;
+    Task& operator=(const Task&) = delete;
 };
 }

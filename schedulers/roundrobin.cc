@@ -29,7 +29,7 @@ namespace roundrobin
     // Interval
     struct itimerval interval;
 
-    // "Kernel" stack, for interrupt managemetn
+    // "Kernel" stack, for interrupt management
     void *signal_stack;
 
     // The interrupt context. This is not the kernel stack.
@@ -84,7 +84,10 @@ namespace roundrobin
     [[noreturn]] void start()
     {
        if (setitimer(ITIMER_REAL, &interval, NULL))
-            perror("settimer");
+#ifdef VERBOSE
+            perror("settimer")
+#endif
+       ;
 
         // force a context switch to the first task
         current_process = 0;
@@ -120,7 +123,6 @@ namespace roundrobin
         signal_context.uc_stack.ss_sp = signal_stack;
         signal_context.uc_stack.ss_size = Task::STACKSIZE;
         signal_context.uc_stack.ss_flags = 0;
-        // Mask SIGALRM as it should be managed by the kernel
         sigemptyset(&signal_context.uc_sigmask);
         makecontext(&signal_context, next_process, 1);
 
